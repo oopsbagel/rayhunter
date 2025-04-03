@@ -18,6 +18,8 @@ jobs:
             os: macos-latest
           - name: macos-intel
             os: macos-13
+          - name: windows-x86_64
+            os: windows-latest
     runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@v4
