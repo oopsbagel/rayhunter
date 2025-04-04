@@ -20,7 +20,6 @@ jobs:
             os: macos-13
           - name: windows-x86_64
             os: windows-latest
-            exit: ".exe"
     runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@v4
