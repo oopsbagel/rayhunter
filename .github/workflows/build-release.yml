@@ -31,7 +31,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: serial-${{ matrix.platform.name }}
-          path: target/release/serial
+          path: target/release/serial*
           if-no-files-found: error
       - uses: actions/checkout@v4
       - name: Build check
