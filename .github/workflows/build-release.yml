@@ -25,9 +25,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build serial
         run: cargo build --bin serial --release
-      - name: Inpsect
-        shell: bash
-        run: ls -R
       - uses: actions/upload-artifact@v4
         with:
           name: serial-${{ matrix.platform.name }}
