@@ -36,7 +36,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: rayhunter-check-${{ matrix.platform.os }}
-          path: target/release/serial${{ matrix.platform.os == 'windows-latest' && '.exe' || '' }}
+          path: target/release/rayhunter-check${{ matrix.platform.os == 'windows-latest' && '.exe' || '' }}
           if-no-files-found: error
   build_rootshell_and_rayhunter:
     runs-on: ubuntu-latest
