@@ -10,11 +10,11 @@
 use std::str;
 use std::time::Duration;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use nusb::transfer::{Control, ControlType, Recipient, RequestBuffer};
 use nusb::{Device, Interface};
 
-const ORBIC_NOT_FOUND: &str = r#"No Orbic device found.
+const ORBIC_NOIT_FOUND: &str = r#"No Orbic device found.
 Make sure your device is plugged in and turned on.
 
 If it's possible you have a device with a different usb id:
@@ -34,14 +34,14 @@ async fn main() -> Result<()> {
     } else {
         match open_orbic()? {
             Some(interface) => send_command(interface, &args[1]).await,
-            None => bail!(ORBIC_NOT_FOUND),
+            None => panic!("orbic not found"),
         }
     }
 }
 
 /// Sends an AT command to the usb device over the serial port
 ///
-/// First establish a USB handle and context by calling `open_orbic(<T>)
+/// First establish a USB handle and expect by calling `open_orbic(<T>)
 async fn send_command(interface: Interface, command: &str) -> Result<()> {
     let mut data = String::new();
     data.push_str("\r\n");
@@ -61,28 +61,28 @@ async fn send_command(interface: Interface, command: &str) -> Result<()> {
     // Set up the serial port appropriately
     interface
         .control_out_blocking(enable_serial_port, &[], timeout)
-        .context("Failed to send control request")?;
+        .expect("Failed to send control request");
 
     // Send the command
     tokio::time::timeout(timeout, interface.bulk_out(0x2, data.as_bytes().to_vec()))
         .await
-        .context("Timed out writing command")?
+        .expect("Timed out writing command")
         .into_result()
-        .context("Failed to write command")?;
+        .expect("Failed to write command");
 
     // Consume the echoed command
     tokio::time::timeout(timeout, interface.bulk_in(0x82, RequestBuffer::new(256)))
         .await
-        .context("Timed out reading submitted command")?
+        .expect("Timed out reading submitted command")
         .into_result()
-        .context("Failed to read submitted command")?;
+        .expect("Failed to read submitted command");
 
     // Read the actual response
     let response = tokio::time::timeout(timeout, interface.bulk_in(0x82, RequestBuffer::new(256)))
         .await
-        .context("Timed out reading response")?
+        .expect("Timed out reading response")
         .into_result()
-        .context("Failed to read response")?;
+        .expect("Failed to read response");
 
     // For some reason, on macOS the response buffer gets filled with garbage data that's
     // rarely valid UTF-8. Luckily we only care about the first couple bytes, so just drop
@@ -117,19 +117,19 @@ fn enable_command_mode() -> Result<()> {
         };
         let interface = device
             .detach_and_claim_interface(1)
-            .context("detach_and_claim_interface(1) failed")?;
+            .expect("detach_and_claim_interface(1) failed");
         if let Err(e) = interface.control_out_blocking(enable_command_mode, &[], timeout) {
             // If the device reboots while the command is still executing we
             // may get a pipe error here
             if e == nusb::transfer::TransferError::Stall {
                 return Ok(());
             }
-            bail!("Failed to send device switch control request: {0}", e)
+            panic!("Failed to send device switch control request: {0}", e)
         }
         return Ok(());
     }
 
-    bail!(ORBIC_NOT_FOUND);
+    panic!("orbic not found");
 }
 
 /// Get an Interface for the orbic device
@@ -138,7 +138,7 @@ fn open_orbic() -> Result<Option<Interface>> {
     if let Some(device) = open_device(0x05c6, 0xf601)? {
         let interface = device
             .detach_and_claim_interface(1) // will reattach drivers on release
-            .context("detach_and_claim_interface(1) failed")?;
+            .expect("detach_and_claim_interface(1) failed");
         return Ok(Some(interface));
     }
 
@@ -146,7 +146,7 @@ fn open_orbic() -> Result<Option<Interface>> {
     if let Some(device) = open_device(0x05c6, 0xf622)? {
         let interface = device
             .detach_and_claim_interface(1) // will reattach drivers on release
-            .context("detach_and_claim_interface(1) failed")?;
+            .expect("detach_and_claim_interface(1) failed");
         return Ok(Some(interface));
     }
 
@@ -164,7 +164,7 @@ fn open_device(vid: u16, pid: u16) -> Result<Option<Device>> {
         if device.vendor_id() == vid && device.product_id() == pid {
             match device.open() {
                 Ok(d) => return Ok(Some(d)),
-                Err(e) => bail!("device found but failed to open: {}", e),
+                Err(e) => panic!("device found but failed to open: {}", e),
             }
         }
     }
