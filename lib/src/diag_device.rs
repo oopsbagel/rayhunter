@@ -2,8 +2,6 @@ use crate::diag::{
     build_log_mask_request, DataType, DiagParsingError, LogConfigRequest, LogConfigResponse,
     Message, MessagesContainer, Request, RequestContainer, ResponsePayload, CRC_CCITT,
 };
-#[cfg(target_arch = "aarch64")]
-const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
 use crate::hdlc::hdlc_encapsulate;
 use crate::log_codes;
 
@@ -64,8 +62,6 @@ const MEMORY_DEVICE_MODE: u32 = 2;
 #[cfg(target_arch = "arm")]
 const DIAG_IOCTL_REMOTE_DEV: i32 = 32;
 #[cfg(target_arch = "x86_64")]
-const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
-#[cfg(target_arch = "aarch64")]
 const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
 #[cfg(target_arch = "aarch64")]
 const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
