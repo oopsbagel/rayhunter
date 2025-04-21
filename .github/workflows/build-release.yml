@@ -77,11 +77,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: armv7-unknown-linux-musleabihf
-      - name: Install cross-compilation dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: build-essential libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-musleabihf
-          version: 1.0
       - name: Build rayhunter-daemon (arm32)
         run: cargo build --bin rayhunter-daemon --target armv7-unknown-linux-musleabihf --release --no-default-features --features ${{ matrix.device.name }}
       - uses: actions/upload-artifact@v4
