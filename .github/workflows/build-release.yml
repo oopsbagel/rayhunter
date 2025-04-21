@@ -60,7 +60,6 @@ jobs:
       - name: Install cross-compilation dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: build-essential
           version: 1.0
       - name: Build rootshell (arm32)
         run: cargo build --bin rootshell --target armv7-unknown-linux-musleabihf --release
