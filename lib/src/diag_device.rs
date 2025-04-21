@@ -59,15 +59,19 @@ pub const LOG_CODES_FOR_RAW_PACKET_LOGGING: [u32; 11] = [
 const BUFFER_LEN: usize = 1024 * 1024 * 10;
 const MEMORY_DEVICE_MODE: u32 = 2;
 
-#[cfg(target_arch = "arm")]
+#[cfg(all(target_arch = "arm", target_env = "musl"))]
 const DIAG_IOCTL_REMOTE_DEV: i32 = 32;
+#[cfg(all(target_arch = "arm", not(target_env = "musl")))]
+const DIAG_IOCTL_REMOTE_DEV: u32 = 32;
 #[cfg(target_arch = "x86_64")]
 const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
 #[cfg(target_arch = "aarch64")]
 const DIAG_IOCTL_REMOTE_DEV: u64 = 32;
 
-#[cfg(target_arch = "arm")]
+#[cfg(all(target_arch = "arm", target_env = "musl"))]
 const DIAG_IOCTL_SWITCH_LOGGING: i32 = 7;
+#[cfg(all(target_arch = "arm", not(target_env = "musl")))]
+const DIAG_IOCTL_SWITCH_LOGGING: u32 = 7;
 #[cfg(target_arch = "x86_64")]
 const DIAG_IOCTL_SWITCH_LOGGING: u64 = 7;
 #[cfg(target_arch = "aarch64")]
