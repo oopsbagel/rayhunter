@@ -32,8 +32,10 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install cargo-auditable and cargo-audit
+        run: cargo install cargo-auditable cargo-audit
       - name: Build rayhunter-check
-        run: cargo build --bin rayhunter-check --release
+        run: cargo auditable build --bin rayhunter-check --release
       - uses: actions/upload-artifact@v4
         with:
           name: rayhunter-check-${{ matrix.platform.name }}
@@ -43,11 +45,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install cargo-auditable and cargo-audit
+        run: cargo install cargo-auditable cargo-audit
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: armv7-unknown-linux-musleabihf
       - name: Build rootshell (arm32)
-        run: cargo build --bin rootshell --target armv7-unknown-linux-musleabihf --release
+        run: cargo auditable build --bin rootshell --target armv7-unknown-linux-musleabihf --release
       - uses: actions/upload-artifact@v4
         with:
           name: rootshell
@@ -63,11 +67,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install cargo-auditable and cargo-audit
+        run: cargo install cargo-auditable cargo-audit
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: armv7-unknown-linux-musleabihf
       - name: Build rayhunter-daemon (arm32)
-        run: cargo build --bin rayhunter-daemon --target armv7-unknown-linux-musleabihf --release --no-default-features --features ${{ matrix.device.name }}
+        run: cargo auditable build --bin rayhunter-daemon --target armv7-unknown-linux-musleabihf --release --no-default-features --features ${{ matrix.device.name }}
       - uses: actions/upload-artifact@v4
         with:
           name: rayhunter-daemon-${{ matrix.device.name }}
@@ -97,12 +103,14 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install cargo-auditable and cargo-audit
+        run: cargo install cargo-auditable cargo-audit
       - uses: actions/download-artifact@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform.target }}
 
-      - run: cargo build --bin installer --release --target ${{ matrix.platform.target }} --features vendor
+      - run: cargo auditable build --bin installer --release --target ${{ matrix.platform.target }} --features vendor
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.platform.name }}
