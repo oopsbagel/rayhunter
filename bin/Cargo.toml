@@ -5,8 +5,10 @@ edition = "2021"
 
 [features]
 # These feature flags are mutually exclusive, and exactly one must be enabled.
+alcatel = ["rayhunter/alcatel"]
 orbic = ["rayhunter/orbic"]
 tplink = ["rayhunter/tplink"]
+dummy = ["rayhunter/dummy"]
 
 default = ["orbic"]
 
