@@ -111,7 +111,7 @@ jobs:
 
   build_release_zip:
     needs:
-      - build_serial_and_check
+      - build_rayhunter_check
       - build_rootshell
       - build_rayhunter
       - build_rust_installer
