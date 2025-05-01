@@ -25,6 +25,6 @@ tokio-stream = "0.1.17"
 
 [dependencies.adb_client]
 git = "https://github.com/gaykitty/adb_client.git"
-branch = "nusb"
+branch = "287f926f13ef85ac8ce8672d1996f9d12366e5cd"
 default-features = false
 features = ["usb"]
