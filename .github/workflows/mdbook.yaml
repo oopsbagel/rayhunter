@@ -17,6 +17,8 @@ jobs:
           cargo install mdbook --no-default-features --features search --vers "^0.4" --locked
       - name: Test mdBook
         run: mdbook test $MDBOOK_DIR
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
