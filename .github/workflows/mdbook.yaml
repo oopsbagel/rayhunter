@@ -8,6 +8,8 @@ env:
 
 jobs:
   mdbook_test:
+    permissions:
+      id-token: write
     name: Test mdBook Documentation builds
     runs-on: ubuntu-latest
     steps:
