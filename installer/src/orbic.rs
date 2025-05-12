@@ -381,9 +381,18 @@ pub fn enable_command_mode() -> Result<()> {
             value: 0,
             index: 0,
         };
+
+        #[cfg(target_os = "macos")]
         let interface = device
             .detach_and_claim_interface(1)
             .context("detach_and_claim_interface(1) failed")?;
+
+        #[cfg(not(target_os = "macos"))]
+        let interface = device
+            .detach_and_claim_interface(1)
+            .wait()
+            .context("detach_and_claim_interface(1) failed")?;
+
         if let Err(e) = interface.control_out_blocking(enable_command_mode, &[], timeout) {
             // If the device reboots while the command is still executing we
             // may get a pipe error here
@@ -399,6 +408,7 @@ pub fn enable_command_mode() -> Result<()> {
 }
 
 /// Get an Interface for the orbic device
+#[cfg(target_os = "macos")]
 pub fn open_orbic() -> Result<Option<Interface>> {
     // Device after initial mode switch
     if let Some(device) = open_usb_device(VENDOR_ID, PRODUCT_ID)? {
@@ -419,7 +429,32 @@ pub fn open_orbic() -> Result<Option<Interface>> {
     Ok(None)
 }
 
+/// Get an Interface for the orbic device
+#[cfg(not(target_os = "macos"))]
+pub fn open_orbic() -> Result<Option<Interface>> {
+    // Device after initial mode switch
+    if let Some(device) = open_usb_device(VENDOR_ID, PRODUCT_ID)? {
+        let interface = device
+            .detach_and_claim_interface(1) // will reattach drivers on release
+            .await
+            .context("detach_and_claim_interface(1) failed")?;
+        return Ok(Some(interface));
+    }
+
+    // Device with rndis enabled as well
+    if let Some(device) = open_usb_device(VENDOR_ID, 0xf622)? {
+        let interface = device
+            .detach_and_claim_interface(1) // will reattach drivers on release
+            .await
+            .context("detach_and_claim_interface(1) failed")?;
+        return Ok(Some(interface));
+    }
+
+    Ok(None)
+}
+
 /// General function to open a USB device
+#[cfg(target_os = "macos")]
 fn open_usb_device(vid: u16, pid: u16) -> Result<Option<Device>> {
     let devices = match nusb::list_devices() {
         Ok(d) => d,
@@ -429,6 +464,26 @@ fn open_usb_device(vid: u16, pid: u16) -> Result<Option<Device>> {
     for device in devices {
         if device.vendor_id() == vid && device.product_id() == pid {
             match device.open() {
+                Ok(d) => return Ok(Some(d)),
+                Err(e) => bail!("device found but failed to open: {}", e),
+            }
+        }
+    }
+
+    Ok(None)
+}
+
+/// General function to open a USB device
+#[cfg(not(target_os = "macos"))]
+async fn open_usb_device(vid: u16, pid: u16) -> Result<Option<Device>> {
+    let devices = match nusb::list_devices().await {
+        Ok(d) => d,
+        Err(_) => return Ok(None),
+    };
+
+    for device in devices {
+        if device.vendor_id() == vid && device.product_id() == pid {
+            match device.open().await {
                 Ok(d) => return Ok(Some(d)),
                 Err(e) => bail!("device found but failed to open: {}", e),
             }
