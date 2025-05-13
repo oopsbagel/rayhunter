@@ -22,8 +22,11 @@ tokio = { version = "1.44.2", features = ["full"] }
 tokio-retry2 = "0.5.7"
 tokio-stream = "0.1.17"
 
-[dependencies.adb_client]
-# path = "../../adb_client/adb_client"
+# Use the libusb-based adb_client until nusb supports detaching macOS kernel drivers.
+[target.'cfg(target_os = "macos")'.dependencies.adb_client]
+git = "https://github.com/gaykitty/adb_client.git"
+rev = "5dfbaf27d6e78c9546aa6331a0b6e8ba6cddd0bd"
+[else]
 git = "https://github.com/gaykitty/adb_client.git"
 branch = "rayhunter"
 default-features = false
