@@ -17,9 +17,6 @@ use sha2::{Digest, Sha256};
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
 
-#[cfg(not(target_os = "macos"))]
-use nusb::MaybeFuture;
-
 use crate::{CONFIG_TOML, RAYHUNTER_DAEMON_INIT};
 
 pub const ORBIC_NOT_FOUND: &str = r#"No Orbic device found.
