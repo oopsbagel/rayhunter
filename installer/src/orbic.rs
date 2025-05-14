@@ -2,6 +2,12 @@ use std::io::{ErrorKind, Write};
 use std::path::Path;
 use std::time::Duration;
 
+#[cfg(not(target_os = "macos"))]
+use adb_client_nusb as adb_client;
+
+#[cfg(target_os = "macos")]
+use adb_client_nusb as adb_client;
+
 use adb_client::{ADBDeviceExt, ADBUSBDevice, RustADBError};
 use anyhow::{Context, Result, anyhow, bail};
 use nusb::hotplug::HotplugEvent;
@@ -10,6 +16,9 @@ use nusb::{Device, Interface};
 use sha2::{Digest, Sha256};
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
+
+#[cfg(not(target_os = "macos"))]
+use nusb::MaybeFuture;
 
 use crate::{CONFIG_TOML, RAYHUNTER_DAEMON_INIT};
 
@@ -431,7 +440,7 @@ pub fn open_orbic() -> Result<Option<Interface>> {
 
 /// Get an Interface for the orbic device
 #[cfg(not(target_os = "macos"))]
-pub fn open_orbic() -> Result<Option<Interface>> {
+pub async fn open_orbic() -> Result<Option<Interface>> {
     // Device after initial mode switch
     if let Some(device) = open_usb_device(VENDOR_ID, PRODUCT_ID)? {
         let interface = device
