@@ -26,17 +26,9 @@ tokio-stream = "0.1.17"
 [target.'cfg(target_os = "macos")'.dependencies.adb_client]
 git = "https://github.com/gaykitty/adb_client.git"
 rev = "5dfbaf27d6e78c9546aa6331a0b6e8ba6cddd0bd"
-[else]
-git = "https://github.com/gaykitty/adb_client.git"
-branch = "rayhunter"
-default-features = false
-features = ["usb"]
 
-[target.'cfg(not(target_os = "macos"))'.dependencies.adb_client]
+[dependency.adb_client]
 git = "https://github.com/gaykitty/adb_client.git"
 branch = "rayhunter"
 default-features = false
 features = ["usb"]
-[else]
-git = "https://github.com/gaykitty/adb_client.git"
-rev = "5dfbaf27d6e78c9546aa6331a0b6e8ba6cddd0bd"
