@@ -23,8 +23,5 @@ tokio-retry2 = "0.5.7"
 tokio-stream = "0.1.17"
 
 [dependencies.adb_client]
-# path = "../../adb_client/adb_client"
 git = "https://github.com/gaykitty/adb_client.git"
-branch = "rayhunter"
-default-features = false
-features = ["usb"]
+rev = "5dfbaf27d6e78c9546aa6331a0b6e8ba6cddd0bd"
