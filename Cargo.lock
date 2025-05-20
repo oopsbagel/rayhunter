@@ -1443,6 +1443,7 @@ dependencies = [
  "env_logger 0.11.8",
  "hyper",
  "hyper-util",
+ "libc",
  "md5",
  "nusb",
  "reqwest",

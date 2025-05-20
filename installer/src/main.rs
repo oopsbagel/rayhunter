@@ -2,6 +2,7 @@ use anyhow::{Context, Error, bail};
 use clap::{Parser, Subcommand};
 use env_logger::Env;
 
+mod alcatel;
 mod orbic;
 mod tplink;
 
@@ -65,6 +66,8 @@ enum UtilSubCommand {
     Shell(Shell),
     /// Root the tplink and launch telnetd.
     TplinkStartTelnet(TplinkStartTelnet),
+    /// Enable adb on the Alcatel MW43.
+    Alcatel(Alcatel),
 }
 
 #[derive(Parser, Debug)]
@@ -83,6 +86,11 @@ struct Serial {
 
 #[derive(Parser, Debug)]
 struct Shell {}
+
+#[derive(Parser, Debug)]
+struct Alcatel {
+    device: String,
+}
 
 async fn run() -> Result<(), Error> {
     env_logger::Builder::from_env(Env::default().default_filter_or("off")).init();
@@ -113,6 +121,9 @@ async fn run() -> Result<(), Error> {
             UtilSubCommand::Shell(_) => orbic::shell().await.context("\nFailed to open shell on Orbic RC400L")?,
             UtilSubCommand::TplinkStartTelnet(options) => {
                 tplink::start_telnet(&options.admin_ip).await?;
+            }
+            UtilSubCommand::Alcatel(options) => {
+                alcatel::install(options.device).await?;
             }
         }
     }
