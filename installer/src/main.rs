@@ -1,6 +1,7 @@
 use anyhow::{Context, Error, bail};
 use clap::{Parser, Subcommand};
 
+mod alcatel;
 mod orbic;
 mod tplink;
 
@@ -51,6 +52,8 @@ enum UtilSubCommand {
     Serial(Serial),
     /// Root the tplink and launch telnetd.
     TplinkStartTelnet(TplinkStartTelnet),
+    /// Enable adb on the Alcatel MW43.
+    Alcatel(Alcatel),
 }
 
 #[derive(Parser, Debug)]
@@ -65,6 +68,11 @@ struct Serial {
     #[arg(long)]
     root: bool,
     command: Vec<String>,
+}
+
+#[derive(Parser, Debug)]
+struct Alcatel {
+    device: String,
 }
 
 async fn run() -> Result<(), Error> {
@@ -94,6 +102,9 @@ async fn run() -> Result<(), Error> {
             }
             UtilSubCommand::TplinkStartTelnet(options) => {
                 tplink::start_telnet(&options.admin_ip).await?;
+            }
+            UtilSubCommand::Alcatel(options) => {
+                alcatel::install(options.device).await?;
             }
         }
     }

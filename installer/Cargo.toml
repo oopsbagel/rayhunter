@@ -10,6 +10,7 @@ bytes = "1.10.1"
 clap = { version = "4.5.37", features = ["derive"] }
 hyper = "1.6.0"
 hyper-util = "0.1.11"
+libc = "0.2.172"
 md5 = "0.7.0"
 nusb = "0.1.13"
 reqwest = { version = "0.12.15", features = ["json"], default-features = false }
