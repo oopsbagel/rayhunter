@@ -11,6 +11,8 @@ jobs:
   mdbook_test:
     name: Test mdBook Documentation builds
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Install mdBook
