@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      code_changed: ${{ steps.files_changed.outputs.code_count }}
       daemon_changed: ${{ steps.files_changed.outputs.daemon_count }}
       docs_changed: ${{ steps.files_changed.outputs.docs_count }}
       installer_changed: ${{ steps.files_changed.outputs.installer_count }}
@@ -29,10 +30,57 @@ jobs:
           fetch-depth: 0
       - id: files_changed
         run: |
+          echo "code_count=$(git diff --name-only origin/main...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
           echo "daemon_count=$(git diff --name-only origin/main...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
           echo "docs_count=$(git diff --name-only origin/main...HEAD | grep -e ^docs | wc -l)" >> "$GITHUB_OUTPUT"
           echo "rootshell_count=$(git diff --name-only origin/main...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
           echo "installer_count=$(git diff --name-only origin/main...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+
+  check_and_test:
+    needs: files_changed
+    if: needs.files_changed.outputs.code_changed != '0'
+    strategy:
+      matrix:
+        device:
+          - name: tplink
+          - name: orbic
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check
+      run: |
+        pushd bin/web
+        npm install
+        npm run build
+        popd
+        NO_FIRMWARE_BIN=true cargo check --verbose --no-default-features --features=${{ matrix.device.name }}
+    - name: Run tests
+      run: |
+        NO_FIRMWARE_BIN=true cargo test --verbose --no-default-features --features=${{ matrix.device.name }}
+    - name: Run clippy
+      run: |
+        NO_FIRMWARE_BIN=true cargo clippy --verbose --no-default-features --features=${{ matrix.device.name }}
+
+  windows_installer_check_and_test:
+    needs: installer_changed
+    if: needs.installer_changed.outputs.num_changed != '0'
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - name: cargo check
+        shell: bash
+        run: |
+          cd installer
+          NO_FIRMWARE_BIN=true cargo check --verbose
+      - name: cargo test
+        shell: bash
+        run: |
+          cd installer
+          NO_FIRMWARE_BIN=true cargo test --verbose --no-default-features --features=${{ matrix.device.name }}
 
   build_rayhunter_check:
     if: needs.files_changed.outputs.daemon_changed != '0'
