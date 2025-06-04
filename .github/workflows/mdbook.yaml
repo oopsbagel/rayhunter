@@ -21,7 +21,9 @@ jobs:
           fetch-depth: 0
       - name: fancy
         id: docs_changed
-        run: echo "count=$(git diff --name-only main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo git diff --name-only origin/main...HEAD | grep ^doc
+          echo "count=$(git diff --name-only origin/main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"
 
   mdbook_test:
     name: Test mdBook Documentation builds
