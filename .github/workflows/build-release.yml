@@ -31,11 +31,20 @@ jobs:
       - id: files_changed
         run: |
           lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
-          echo "code_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
-          echo "daemon_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
-          echo "docs_count=$(git diff --name-only $lcommit...HEAD | grep -e ^doc | wc -l)" >> "$GITHUB_OUTPUT"
-          echo "rootshell_count=$(git diff --name-only $lcommit...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
-          echo "installer_count=$(git diff --name-only $lcommit...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+          if ${{ github.refs }} == 'refs/heads/main' then
+            echo "building everything"
+            echo code_count=forced
+            echo daemon_count=forced
+            echo docs_count=forced
+            echo installer_count=forced
+            echo rootshell_count=forced
+          else
+            echo "code_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "daemon_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "docs_count=$(git diff --name-only $lcommit...HEAD | grep -e ^doc | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "installer_count=$(git diff --name-only $lcommit...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "rootshell_count=$(git diff --name-only $lcommit...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
+          fi
 
   mdbook_test:
     name: Test mdBook Documentation builds
