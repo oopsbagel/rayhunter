@@ -13,14 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      num_changed: ${{ steps.docs_changed.outputs.count }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: fancy
         id: docs_changed
-        outputs:
-          num_changed: ${{ steps.docs_changed.outputs.count }}
         run: echo "count=$(git diff --name-only main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"
 
   mdbook_test:
