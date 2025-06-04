@@ -127,13 +127,13 @@ jobs:
           if-no-files-found: error
 
   build_rust_installer:
-    if: needs.installer_changed.outputs.installer_changed != '0'
+    if: needs.files_changed.outputs.installer_changed != '0'
     permissions:
       contents: read
       packages: write
     needs:
       - build_rayhunter
-      - installer_changed
+      - files_changed
     strategy:
       matrix:
         platform:
