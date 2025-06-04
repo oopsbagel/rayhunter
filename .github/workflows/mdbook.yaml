@@ -19,8 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: fancy
-        id: docs_changed
+      - id: docs_changed
         run: |
           git diff --name-only origin/main...HEAD | grep ^doc
           echo "count=$(git diff --name-only origin/main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"

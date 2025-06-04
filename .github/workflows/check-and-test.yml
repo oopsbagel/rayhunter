@@ -51,7 +51,24 @@ jobs:
     - name: Run clippy
       run: cargo clippy --verbose --no-default-features --features=${{ matrix.device.name }}
 
+  installer_changed:
+    name: Detect installer changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      num_changed: ${{ steps.installer_changed.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: installer_changed
+        run: |
+          echo "count=$(git diff --name-only origin/main...HEAD | grep ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+
   windows_installer_check_and_test:
+    needs: installer_changed
+    if: needs.installer_changed.outputs.num_changed != '0'
     runs-on: windows-latest
     permissions:
       contents: read
