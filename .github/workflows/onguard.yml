@@ -7,13 +7,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - run: |
+      - uses: actions/checkout@v4
+      - name: Ensure all Cargo.toml files have the same version defined.
+        run: |
           defined_versions=$(find lib bin installer rootshell telcom-parser -name Cargo.toml -exec grep ^version {} \; | uniq | wc -l)
           if [ defined_versions != "1" ]
           then
-            echo "all Cargo.toml files must have the same version value"
+            echo "all Cargo.toml files must have the same version defined"
             exit 1
           fi
-      - run: |
+      - name: Create release
+        run: |
           version=$(grep ^version lib/Cargo.toml | cut -d' ' -f3 | tr -d '"')
           gh release create $version
