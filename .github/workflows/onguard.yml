@@ -12,8 +12,8 @@ jobs:
         run: |
           defined_versions=$(find lib bin installer rootshell telcom-parser -name Cargo.toml -exec grep ^version {} \; | uniq | wc -l)
           find lib bin installer rootshell telcom-parser -name Cargo.toml -exec grep ^version {} \;
-          echo defined versions = $defined_versions
-          if [ defined_versions != "1" ]
+          echo number of defined versions = $defined_versions
+          if [ $defined_versions != "1" ]
           then
             echo "all Cargo.toml files must have the same version defined"
             exit 1
