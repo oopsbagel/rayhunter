@@ -9,7 +9,7 @@ on:
 
 jobs:
   docs_changed:
-    name: dt
+    name: Detect documentation changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,13 +41,13 @@ jobs:
         run: mdbook test
 
   mdbook_publish:
-    if: ${{ github.event_name != 'pull_request' }}
+    name: Publish mdBook to Github Pages
     needs: mdbook_test
+    if: ${{ github.event_name != 'pull_request' }}
     permissions:
       pages: write
       contents: write
       id-token: write
-    name: Publish mdBook to Github Pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
