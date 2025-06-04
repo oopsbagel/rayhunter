@@ -27,7 +27,7 @@ jobs:
 
   check_and_test:
     needs: code_changed
-    if: ${{ steps.code_changed.outputs.num_changed != '0' }}
+    if: needs.code_changed.outputs.num_changed != '0'
     strategy:
       matrix:
         device:
