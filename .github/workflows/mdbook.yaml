@@ -9,7 +9,7 @@ on:
 
 jobs:
   docs_changed:
-    name: dt
+    name: Detect documentation changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,9 +19,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: fancy
-        id: docs_changed
-        run: echo "count=$(git diff --name-only main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"
+      - id: docs_changed
+        run: |
+          git diff --name-only origin/main...HEAD | grep ^doc
+          echo "count=$(git diff --name-only origin/main...HEAD | grep ^doc | wc -l)" >> "$GITHUB_OUTPUT"
 
   mdbook_test:
     name: Test mdBook Documentation builds
@@ -39,13 +40,13 @@ jobs:
         run: mdbook test
 
   mdbook_publish:
-    if: ${{ github.event_name != 'pull_request' }}
+    name: Publish mdBook to Github Pages
     needs: mdbook_test
+    if: ${{ github.event_name != 'pull_request' }}
     permissions:
       pages: write
       contents: write
       id-token: write
-    name: Publish mdBook to Github Pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

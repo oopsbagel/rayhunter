@@ -13,7 +13,133 @@ env:
   FILE_RAYHUNTER_DAEMON_TPLINK: ../../rayhunter-daemon-tplink/rayhunter-daemon
 
 jobs:
+  files_changed:
+    name: Detect file changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      code_changed: ${{ steps.files_changed.outputs.code_count }}
+      daemon_changed: ${{ steps.files_changed.outputs.daemon_count }}
+      docs_changed: ${{ steps.files_changed.outputs.docs_count }}
+      installer_changed: ${{ steps.files_changed.outputs.installer_count }}
+      rootshell_changed: ${{ steps.files_changed.outputs.rootshell_count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: files_changed
+        run: |
+          lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
+          if [ ${{ github.ref }} -eq 'refs/heads/main' ]
+          then
+            echo "building everything"
+            echo code_count=forced
+            echo daemon_count=forced
+            echo docs_count=forced
+            echo installer_count=forced
+            echo rootshell_count=forced
+          else
+            echo "code_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "daemon_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "docs_count=$(git diff --name-only $lcommit...HEAD | grep -e ^doc | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "installer_count=$(git diff --name-only $lcommit...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "rootshell_count=$(git diff --name-only $lcommit...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
+          fi
+
+  mdbook_test:
+    name: Test mdBook Documentation builds
+    needs: files_changed
+    if: needs.files_changed.outputs.docs_changed != '0'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mdBook
+        run: |
+          cargo install mdbook --no-default-features --features search --vers "^0.4" --locked
+      - name: Test mdBook
+        run: mdbook test
+
+  mdbook_publish:
+    name: Publish mdBook to Github Pages
+    needs: mdbook_test
+    if: ${{ github.event_name != 'pull_request' }}
+    permissions:
+      pages: write
+      contents: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mdBook
+        run: |
+          cargo install mdbook --no-default-features --features search --vers "^0.4" --locked
+
+      - name: Build mdBook
+        run: mdbook build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: book
+      - name: Deploy to Github Pages
+        uses: actions/deploy-pages@v4
+
+  check_and_test:
+    needs: files_changed
+    if: needs.files_changed.outputs.code_changed != '0'
+    strategy:
+      matrix:
+        device:
+          - name: tplink
+          - name: orbic
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check
+      run: |
+        pushd bin/web
+        npm install
+        npm run build
+        popd
+        NO_FIRMWARE_BIN=true cargo check --verbose --no-default-features --features=${{ matrix.device.name }}
+    - name: Run tests
+      run: |
+        NO_FIRMWARE_BIN=true cargo test --verbose --no-default-features --features=${{ matrix.device.name }}
+    - name: Run clippy
+      run: |
+        NO_FIRMWARE_BIN=true cargo clippy --verbose --no-default-features --features=${{ matrix.device.name }}
+
+  windows_installer_check_and_test:
+    needs: files_changed
+    if: needs.files_changed.outputs.installer_changed != '0'
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - name: cargo check
+        shell: bash
+        run: |
+          cd installer
+          NO_FIRMWARE_BIN=true cargo check --verbose
+      - name: cargo test
+        shell: bash
+        run: |
+          cd installer
+          NO_FIRMWARE_BIN=true cargo test --verbose --no-default-features --features=${{ matrix.device.name }}
+
   build_rayhunter_check:
+    if: needs.files_changed.outputs.daemon_changed != '0'
+    needs:
+      - check_and_test
+      - files_changed
     permissions:
       contents: read
       packages: write
@@ -45,7 +171,12 @@ jobs:
           name: rayhunter-check-${{ matrix.platform.name }}
           path: target/release/rayhunter-check${{ matrix.platform.os == 'windows-latest' && '.exe' || '' }}
           if-no-files-found: error
+
   build_rootshell:
+    if: needs.files_changed.outputs.rootshell_changed != '0'
+    needs:
+      - check_and_test
+      - files_changed
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,7 +192,12 @@ jobs:
           name: rootshell
           path: target/armv7-unknown-linux-musleabihf/firmware/rootshell
           if-no-files-found: error
+
   build_rayhunter:
+    if: needs.files_changed.outputs.daemon_changed != '0'
+    needs:
+      - check_and_test
+      - files_changed
     permissions:
       contents: read
       packages: write
@@ -96,12 +232,16 @@ jobs:
           name: rayhunter-daemon-${{ matrix.device.name }}
           path: target/armv7-unknown-linux-musleabihf/firmware/rayhunter-daemon
           if-no-files-found: error
+
   build_rust_installer:
+    if: needs.files_changed.outputs.installer_changed != '0'
     permissions:
       contents: read
       packages: write
     needs:
       - build_rayhunter
+      - files_changed
+      - windows_installer_check_and_test
     strategy:
       matrix:
         platform:
