@@ -25,6 +25,9 @@ jobs:
 
   test_build:
     needs: check_version_same
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/main.yml
 
   release:
