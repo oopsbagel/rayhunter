@@ -1,5 +1,4 @@
 name: Check and Test
-
 on:
   push:
     branches: [ "main" ]
@@ -11,13 +10,29 @@ env:
   NO_FIRMWARE_BIN: true
 
 jobs:
+  code_changed:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      num_changed: ${{ steps.code_changed.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: code_changed
+        run: |
+          echo "count=$(git diff --name-only origin/main...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+
   check_and_test:
+    needs: code_changed
+    if: ${{ steps.code_changed.outputs.num_changed != '0' }}
     strategy:
       matrix:
         device:
           - name: tplink
           - name: orbic
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,10 +47,6 @@ jobs:
         cargo check --verbose --no-default-features --features=${{ matrix.device.name }}
     - name: Run tests
       run: |
-        pushd bin/web
-        npm install
-        npm run build
-        popd
         cargo test --verbose --no-default-features --features=${{ matrix.device.name }}
     - name: Run clippy
       run: cargo clippy --verbose --no-default-features --features=${{ matrix.device.name }}
