@@ -31,7 +31,7 @@ jobs:
       - id: files_changed
         run: |
           lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
-          if [ ${{ github.ref }} -eq 'refs/heads/main' ]
+          if [ ${{ github.ref }} = 'refs/heads/main' ]
           then
             echo "building everything"
             echo code_count=forced
