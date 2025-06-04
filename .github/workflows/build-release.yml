@@ -64,8 +64,8 @@ jobs:
         NO_FIRMWARE_BIN=true cargo clippy --verbose --no-default-features --features=${{ matrix.device.name }}
 
   windows_installer_check_and_test:
-    needs: installer_changed
-    if: needs.installer_changed.outputs.num_changed != '0'
+    needs: files_changed
+    if: needs.files_changed.outputs.installer_changed != '0'
     runs-on: windows-latest
     permissions:
       contents: read
