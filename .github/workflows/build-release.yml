@@ -28,10 +28,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - id: files_changed
+      - name: detect file changes
+        id: files_changed
         run: |
           lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
-          if [ ${{ github.ref }} -eq 'refs/heads/main' ]
+          if [ ${{ github.ref }} = 'refs/heads/main' ]
           then
             echo "building everything"
             echo code_count=forced
