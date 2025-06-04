@@ -13,7 +13,30 @@ env:
   FILE_RAYHUNTER_DAEMON_TPLINK: ../../rayhunter-daemon-tplink/rayhunter-daemon
 
 jobs:
+  files_changed:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      daemon_changed: ${{ steps.files_changed.outputs.daemon_count }}
+      docs_changed: ${{ steps.files_changed.outputs.docs_count }}
+      installer_changed: ${{ steps.files_changed.outputs.installer_count }}
+      rootshell_changed: ${{ steps.files_changed.outputs.rootshell_count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: files_changed
+        run: |
+          echo "daemon_count=$(git diff --name-only origin/main...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "docs_count=$(git diff --name-only origin/main...HEAD | grep -e ^docs | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "rootshell_count=$(git diff --name-only origin/main...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "installer_count=$(git diff --name-only origin/main...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+
   build_rayhunter_check:
+    if: needs.files_changed.outputs.daemon_changed != '0'
+    needs: files_changed
     permissions:
       contents: read
       packages: write
@@ -45,7 +68,10 @@ jobs:
           name: rayhunter-check-${{ matrix.platform.name }}
           path: target/release/rayhunter-check${{ matrix.platform.os == 'windows-latest' && '.exe' || '' }}
           if-no-files-found: error
+
   build_rootshell:
+    if: needs.files_changed.outputs.rootshell_changed != '0'
+    needs: files_changed
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,7 +87,10 @@ jobs:
           name: rootshell
           path: target/armv7-unknown-linux-musleabihf/firmware/rootshell
           if-no-files-found: error
+
   build_rayhunter:
+    if: needs.files_changed.outputs.daemon_changed != '0'
+    needs: files_changed
     permissions:
       contents: read
       packages: write
@@ -96,12 +125,15 @@ jobs:
           name: rayhunter-daemon-${{ matrix.device.name }}
           path: target/armv7-unknown-linux-musleabihf/firmware/rayhunter-daemon
           if-no-files-found: error
+
   build_rust_installer:
+    if: needs.installer_changed.outputs.installer_changed != '0'
     permissions:
       contents: read
       packages: write
     needs:
       - build_rayhunter
+      - installer_changed
     strategy:
       matrix:
         platform:
