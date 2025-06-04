@@ -188,6 +188,7 @@ jobs:
     needs:
       - build_rayhunter
       - files_changed
+      - windows_installer_check_and_test
     strategy:
       matrix:
         platform:
