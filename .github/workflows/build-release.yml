@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
       - id: files_changed
         run: |
-          lcommit=${{ github.event.pull_request.base.sha || "origin/main" }}
+          lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
           echo "code_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
           echo "daemon_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
           echo "docs_count=$(git diff --name-only $lcommit...HEAD | grep -e ^doc | wc -l)" >> "$GITHUB_OUTPUT"
