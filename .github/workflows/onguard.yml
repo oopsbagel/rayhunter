@@ -4,5 +4,16 @@ on:
 jobs:
   exist:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - run: echo this was triggered, hooray
+      - run: |
+          defined_versions=$(find lib bin installer rootshell telcom-parser -name Cargo.toml -exec grep ^version {} \; | uniq | wc -l)
+          if [ defined_versions != "1" ]
+          then
+            echo "all Cargo.toml files must have the same version value"
+            exit 1
+          fi
+      - run: |
+          version=$(grep ^version lib/Cargo.toml | cut -d' ' -f3 | tr -d '"')
+          gh release create $version
