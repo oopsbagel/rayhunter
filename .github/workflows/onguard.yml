@@ -30,7 +30,7 @@ jobs:
       packages: write
       id-token: write
       pages: write
-    uses: ./.github/workflows/second.yml
+    uses: ./.github/workflows/main.yml
 
   release:
     runs-on: ubuntu-latest
@@ -43,9 +43,4 @@ jobs:
       - name: Create release
         run: |
           version=$(grep ^version lib/Cargo.toml | cut -d' ' -f3 | tr -d '"')
-          ls -l .
-          echo ---
-          ls -l rayhunter-*
-          echo "gh release create:"
           gh release create "v$version" rayhunter-v${version}/rayhunter-*
-          echo "gh release create successful"
