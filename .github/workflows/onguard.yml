@@ -44,6 +44,8 @@ jobs:
         run: |
           version=$(grep ^version lib/Cargo.toml | cut -d' ' -f3 | tr -d '"')
           ls -l .
+          echo ---
+          ls -l rayhunter-*
           echo "gh release create:"
-          gh release create "v$version" rayhunter-*
+          gh release create "v$version" rayhunter-v${version}/rayhunter-*
           echo "gh release create successful"
