@@ -18,8 +18,3 @@ Please note that this file may contain sensitive information such as your IMSI a
 ### Should I get a locked or unlocked orbic device? What is the difference?
 
 If you want to use a non-Verizon SIM card you will probably need an unlocked device. But it's not clear how locked the locked devices are nor how to unlock them, we welcome any experimentation and information regarding the use of unlocked devices.
-
-
-### Why are you testing CI?
-
-Because it's fun.

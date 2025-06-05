@@ -1,6 +1,8 @@
 name: Check, test, build release zip, publish docs
 
 on:
+  push:
+  pull_request:
   workflow_call:
 
 env:
