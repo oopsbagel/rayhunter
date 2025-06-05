@@ -43,4 +43,5 @@ jobs:
       - name: Create release
         run: |
           version=$(grep ^version lib/Cargo.toml | cut -d' ' -f3 | tr -d '"')
-          gh release create *.zip *.sha256 "v$version"
+          ls -l .
+          gh release create rayhunter-* "v$version"
