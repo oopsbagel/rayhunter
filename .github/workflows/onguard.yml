@@ -23,10 +23,10 @@ jobs:
             exit 1
           fi
 
-  test_build:
+  test_build:  # ... check, clippy, publish docs
     needs: check_version_same
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
       pages: write
