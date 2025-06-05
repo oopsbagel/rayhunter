@@ -1,3 +1,5 @@
+# To use: navigate on Github to Actions, select "Release rayhunter" on the left, click "Run workflow" > "Run workflow" on the right.
+# https://github.com/EFForg/rayhunter/actions/workflows/release.yml
 name: Release rayhunter
 on:
   workflow_dispatch:
@@ -27,8 +29,8 @@ jobs:
     needs: check_version_same
     permissions:
       contents: write
-      packages: write
       id-token: write
+      packages: write
       pages: write
     uses: ./.github/workflows/main.yml
 
