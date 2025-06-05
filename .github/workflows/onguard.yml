@@ -30,7 +30,7 @@ jobs:
       packages: write
       id-token: write
       pages: write
-    uses: ./.github/workflows/main.yml
+    uses: ./.github/workflows/second.yml
 
   release:
     runs-on: ubuntu-latest
