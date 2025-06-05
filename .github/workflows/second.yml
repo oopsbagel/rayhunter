@@ -1,0 +1,111 @@
+name: Check, test, and build release
+
+on:
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+  FILE_ROOTSHELL: ../../rootshell/rootshell
+  FILE_RAYHUNTER_DAEMON_ORBIC: ../../rayhunter-daemon-orbic/rayhunter-daemon
+  FILE_RAYHUNTER_DAEMON_TPLINK: ../../rayhunter-daemon-tplink/rayhunter-daemon
+
+jobs:
+  files_changed:
+    name: Detect file changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      code_changed: ${{ steps.files_changed.outputs.code_count }}
+      daemon_changed: ${{ steps.files_changed.outputs.daemon_count }}
+      docs_changed: ${{ steps.files_changed.outputs.docs_count }}
+      installer_changed: ${{ steps.files_changed.outputs.installer_count }}
+      rootshell_changed: ${{ steps.files_changed.outputs.rootshell_count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: detect file changes
+        id: files_changed
+        run: |
+          lcommit=${{ github.event.pull_request.base.sha || 'origin/main' }}
+          if [ ${{ github.ref }} = 'refs/heads/main' ]
+          then
+            echo "building everything"
+            echo code_count=forced >> "$GITHUB_OUTPUT"
+            echo daemon_count=forced >> "$GITHUB_OUTPUT"
+            echo docs_count=forced >> "$GITHUB_OUTPUT"
+            echo installer_count=forced >> "$GITHUB_OUTPUT"
+            echo rootshell_count=forced >> "$GITHUB_OUTPUT"
+          else
+            echo "code_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^installer -e ^lib -e ^rootshell -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "daemon_count=$(git diff --name-only $lcommit...HEAD | grep -e ^bin -e ^lib -e ^telcom-parser | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "docs_count=$(git diff --name-only $lcommit...HEAD | grep -e ^book.toml -e ^doc | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "installer_count=$(git diff --name-only $lcommit...HEAD | grep -e ^installer | wc -l)" >> "$GITHUB_OUTPUT"
+            echo "rootshell_count=$(git diff --name-only $lcommit...HEAD | grep -e ^rootshell | wc -l)" >> "$GITHUB_OUTPUT"
+          fi
+
+  build_rust_installer:
+    if: needs.files_changed.outputs.installer_changed != '0'
+    permissions:
+      contents: read
+      packages: write
+    needs:
+      - build_rayhunter
+      - files_changed
+      - windows_installer_check_and_test
+    strategy:
+      matrix:
+        platform:
+          - name: ubuntu-24
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+      - run: echo yo > testing.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.platform.name }}
+          path: testing.text
+          if-no-files-found: error
+
+  build_release_zip:
+    permissions:
+      contents: read
+      packages: write
+    needs:
+      - build_rust_installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - name: Get Rayhunter version
+        id: get_version
+        run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
+      - name: Setup versioned release directory
+        run: |
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
+          mkdir "$VERSIONED_DIR"
+          mv testing.txt "$VERSIONED_DIR"/
+      - name: Archive release directory as zip
+        run: |
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
+          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
+      - name: Compute SHA256 of zip
+        run: |
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
+          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+      # TODO: have this create a release directly
+      - name: Upload zip release and sha256
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayhunter-v${{ env.VERSION }}
+          path: |
+            rayhunter-v${{ env.VERSION }}.zip
+            rayhunter-v${{ env.VERSION }}.zip.sha256
+          if-no-files-found: error
