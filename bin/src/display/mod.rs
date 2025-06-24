@@ -20,6 +20,11 @@ mod wingtech;
 #[cfg(feature = "wingtech")]
 pub use wingtech::update_ui;
 
+#[cfg(feature = "headless")]
+mod headless;
+#[cfg(feature = "headless")]
+pub use headless::update_ui;
+
 pub enum DisplayState {
     Recording,
     Paused,
