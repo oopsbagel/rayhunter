@@ -8,6 +8,7 @@ edition = "2021"
 orbic = ["rayhunter/orbic"]
 tplink = ["rayhunter/tplink"]
 wingtech = ["rayhunter/wingtech"]
+headless = ["rayhunter/headless"]
 
 default = ["orbic"]
 
