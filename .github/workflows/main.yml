@@ -311,23 +311,74 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-linux-x86_64"
           mkdir "$VERSIONED_DIR"
-          mv rayhunter-daemon-* rootshell/rootshell installer-* dist/* installer/install.ps1 "$VERSIONED_DIR"/
-      - name: Archive release directory as zip
-        run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
+          cp rayhunter-daemon-* rootshell/rootshell installer-ubuntu-24/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
           zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-      - name: Compute SHA256 of zip
-        run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}"
           sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
-      # TODO: have this create a release directly
-      - name: Upload zip release and sha256
+
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-linux-aarch64"
+          cp rayhunter-daemon-* rootshell/rootshell installer-ubuntu-24-aarch64/installer dist/* "$VERSIONED_DIR"/
+          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
+          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-macos-aarch64"
+          cp rayhunter-daemon-* rootshell/rootshell installer-macos-arm/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
+          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
+          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-macos-x86_64"
+          cp rayhunter-daemon-* rootshell/rootshell installer-macos-intel/installer dist/* "$VERSIONED_DIR"/
+          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
+          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-windows-x86_64"
+          cp rayhunter-daemon-* rootshell/rootshell installer-windows-x86_64/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
+          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
+          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+
+      - name: Upload zip release and sha256 - linux-x86_64
         uses: actions/upload-artifact@v4
         with:
-          name: rayhunter-v${{ env.VERSION }}
+          name: rayhunter-v${{ env.VERSION }}-linux-x86_64
           path: |
-            rayhunter-v${{ env.VERSION }}.zip
-            rayhunter-v${{ env.VERSION }}.zip.sha256
+            rayhunter-v${{ env.VERSION }}-linux-x86_64.zip
+            rayhunter-v${{ env.VERSION }}-linux-x86_64.zip.sha256
           if-no-files-found: error
+
+      - name: Upload zip release and sha256 - linux-aarch64
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayhunter-v${{ env.VERSION }}-linux-aarch64
+          path: |
+            rayhunter-v${{ env.VERSION }}-linux-aarch64.zip
+            rayhunter-v${{ env.VERSION }}-linux-aarch64.zip.sha256
+          if-no-files-found: error
+
+      - name: Upload zip release and sha256 - macos-x86_64
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayhunter-v${{ env.VERSION }}-macos-x86_64
+          path: |
+            rayhunter-v${{ env.VERSION }}-macos-x86_64.zip
+            rayhunter-v${{ env.VERSION }}-macos-x86_64.zip.sha256
+          if-no-files-found: error
+
+      - name: Upload zip release and sha256 - macos-aarch64
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayhunter-v${{ env.VERSION }}-macos-aarch64
+          path: |
+            rayhunter-v${{ env.VERSION }}-macos-aarch64.zip
+            rayhunter-v${{ env.VERSION }}-macos-aarch64.zip.sha256
+          if-no-files-found: error
+
+      - name: Upload zip release and sha256 - windows-x86_64
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayhunter-v${{ env.VERSION }}-windows-x86_64
+          path: |
+            rayhunter-v${{ env.VERSION }}-windows-x86_64.zip
+            rayhunter-v${{ env.VERSION }}-windows-x86_64.zip.sha256
+          if-no-files-found: error
+
