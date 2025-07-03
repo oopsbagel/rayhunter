@@ -310,9 +310,9 @@ jobs:
           - release_name: linux-aarch64
             ci_name: ubuntu-24-aarch64
           - release_name: macos-x86_64
-            ci_name: macs-intel
+            ci_name: macos-intel
           - release_name: macos-aarch64
-            ci_name: macs-arm
+            ci_name: macos-arm
           - release_name: windows-x86_64
             ci_name: windows-x86_64
     steps:
