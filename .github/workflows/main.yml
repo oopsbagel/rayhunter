@@ -325,12 +325,15 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}"
-          mkdir "$VERSIONED_DIR"
-          ls -lR *
-          cp -r rayhunter-daemon-* rootshell/rootshell installer-${{ matrix.installer_arch.ci_name }} dist/* installer/install.ps1 "$VERSIONED_DIR"/
-          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
+          ciname="${{ matrix.installer_arch.ci_name }}"
+          name="${{ matrix.installer_arch.release_name }}"
+          dest="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}"
+          mkdir "$dest"
+          mv installer-$ciname/installer* $dest/installer
+          cp -r rayhunter-daemon-* rootshell/rootshell dist/* installer/install.ps1 $dest
+          ls -lR $dest
+          zip -r "$dest.zip" "$dest"
+          sha256sum "$dest.zip" > "$dest.zip.sha256"
 
       - name: Upload zip release and sha256
         uses: actions/upload-artifact@v4
