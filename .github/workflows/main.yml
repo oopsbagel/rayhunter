@@ -327,7 +327,8 @@ jobs:
         run: |
           VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}"
           mkdir "$VERSIONED_DIR"
-          cp -r rayhunter-daemon-* rootshell/rootshell installer-${{ matrix.installer_arch.ci_name }}/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
+          ls -lR *
+          cp -r rayhunter-daemon-* rootshell/rootshell installer-${{ matrix.installer_arch.ci_name }} dist/* installer/install.ps1 "$VERSIONED_DIR"/
           zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
           sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
 
