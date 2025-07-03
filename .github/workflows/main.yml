@@ -319,10 +319,10 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          name="${{ matrix.platform }}"
+          platform="${{ matrix.platform }}"
           dest="rayhunter-v${{ env.VERSION }}-${{ matrix.platform }}"
           mkdir "$dest"
-          mv installer-$ciname/installer* $dest/installer
+          mv installer-$platform/installer* $dest/installer
           cp -r rayhunter-daemon-* rootshell/rootshell dist/* installer/install.ps1 $dest
           ls -lR $dest
           zip -r "$dest.zip" "$dest"
