@@ -325,7 +325,7 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}"
           mkdir "$VERSIONED_DIR"
           cp -r rayhunter-daemon-* rootshell/rootshell installer-${{ matrix.installer_arch.ci_name }}/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
           zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
