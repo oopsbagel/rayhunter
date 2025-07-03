@@ -301,6 +301,20 @@ jobs:
       - build_rayhunter
       - build_rust_installer
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        installer_arch:
+          # this is temporary and v ugly
+          - release_name: linux-x86_64
+            ci_name: ubuntu-24
+          - release_name: linux-aarch64
+            ci_name: ubuntu-24-aarch64
+          - release_name: macos-x86_64
+            ci_name: macs-intel
+          - release_name: macos-aarch64
+            ci_name: macs-arm
+          - release_name: windows-x86_64
+            ci_name: windows-x86_64
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -311,74 +325,17 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-linux-x86_64"
+          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}
           mkdir "$VERSIONED_DIR"
-          cp rayhunter-daemon-* rootshell/rootshell installer-ubuntu-24/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
+          cp -r rayhunter-daemon-* rootshell/rootshell installer-${{ matrix.installer_arch.ci_name }}/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
           zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
           sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
 
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-linux-aarch64"
-          cp rayhunter-daemon-* rootshell/rootshell installer-ubuntu-24-aarch64/installer dist/* "$VERSIONED_DIR"/
-          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
-
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-macos-aarch64"
-          cp rayhunter-daemon-* rootshell/rootshell installer-macos-arm/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
-          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
-
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-macos-x86_64"
-          cp rayhunter-daemon-* rootshell/rootshell installer-macos-intel/installer dist/* "$VERSIONED_DIR"/
-          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
-
-          VERSIONED_DIR="rayhunter-v${{ env.VERSION }}-windows-x86_64"
-          cp rayhunter-daemon-* rootshell/rootshell installer-windows-x86_64/installer dist/* installer/install.ps1 "$VERSIONED_DIR"/
-          zip -r "$VERSIONED_DIR.zip" "$VERSIONED_DIR"
-          sha256sum "$VERSIONED_DIR.zip" > "$VERSIONED_DIR.zip.sha256"
-
-      - name: Upload zip release and sha256 - linux-x86_64
+      - name: Upload zip release and sha256
         uses: actions/upload-artifact@v4
         with:
-          name: rayhunter-v${{ env.VERSION }}-linux-x86_64
+          name: rayhunter-v${{ env.VERSION }}-linux-x86_6{{ matrix.installer_arch.release_name }}
           path: |
-            rayhunter-v${{ env.VERSION }}-linux-x86_64.zip
-            rayhunter-v${{ env.VERSION }}-linux-x86_64.zip.sha256
+            rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}.zip
+            rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}.zip.sha256
           if-no-files-found: error
-
-      - name: Upload zip release and sha256 - linux-aarch64
-        uses: actions/upload-artifact@v4
-        with:
-          name: rayhunter-v${{ env.VERSION }}-linux-aarch64
-          path: |
-            rayhunter-v${{ env.VERSION }}-linux-aarch64.zip
-            rayhunter-v${{ env.VERSION }}-linux-aarch64.zip.sha256
-          if-no-files-found: error
-
-      - name: Upload zip release and sha256 - macos-x86_64
-        uses: actions/upload-artifact@v4
-        with:
-          name: rayhunter-v${{ env.VERSION }}-macos-x86_64
-          path: |
-            rayhunter-v${{ env.VERSION }}-macos-x86_64.zip
-            rayhunter-v${{ env.VERSION }}-macos-x86_64.zip.sha256
-          if-no-files-found: error
-
-      - name: Upload zip release and sha256 - macos-aarch64
-        uses: actions/upload-artifact@v4
-        with:
-          name: rayhunter-v${{ env.VERSION }}-macos-aarch64
-          path: |
-            rayhunter-v${{ env.VERSION }}-macos-aarch64.zip
-            rayhunter-v${{ env.VERSION }}-macos-aarch64.zip.sha256
-          if-no-files-found: error
-
-      - name: Upload zip release and sha256 - windows-x86_64
-        uses: actions/upload-artifact@v4
-        with:
-          name: rayhunter-v${{ env.VERSION }}-windows-x86_64
-          path: |
-            rayhunter-v${{ env.VERSION }}-windows-x86_64.zip
-            rayhunter-v${{ env.VERSION }}-windows-x86_64.zip.sha256
-          if-no-files-found: error
-
