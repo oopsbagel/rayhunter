@@ -157,16 +157,16 @@ jobs:
     strategy:
       matrix:
         platform:
-          - name: ubuntu-24
+          - name: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-          - name: ubuntu-24-aarch64
+          - name: linux-aarch64
             os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
-          - name: macos-arm
+          - name: macos-aarch64
             os: macos-latest
             target: aarch64-apple-darwin
-          - name: macos-intel
+          - name: macos-x86_64
             os: macos-13
             target: x86_64-apple-darwin
           - name: windows-x86_64
@@ -261,16 +261,16 @@ jobs:
     strategy:
       matrix:
         platform:
-          - name: ubuntu-24
+          - name: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-          - name: ubuntu-24-aarch64
+          - name: linux-aarch64
             os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
-          - name: macos-arm
+          - name: macos-aarch64
             os: macos-latest
             target: aarch64-apple-darwin
-          - name: macos-intel
+          - name: macos-x86_64
             os: macos-13
             target: x86_64-apple-darwin
           - name: windows-x86_64
@@ -303,18 +303,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        installer_arch:
-          # this is temporary and v ugly
-          - release_name: linux-x86_64
-            ci_name: ubuntu-24
-          - release_name: linux-aarch64
-            ci_name: ubuntu-24-aarch64
-          - release_name: macos-x86_64
-            ci_name: macos-intel
-          - release_name: macos-aarch64
-            ci_name: macos-arm
-          - release_name: windows-x86_64
-            ci_name: windows-x86_64
+        platform:
+          - linux-x86_64
+          - linux-aarch64
+          - macos-x86_64
+          - macos-aarch64
+          - windows-x86_64
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -325,9 +319,8 @@ jobs:
         run: echo "VERSION=$(grep '^version' bin/Cargo.toml | head -n 1 | cut -d'"' -f2)" >> $GITHUB_ENV
       - name: Setup versioned release directory
         run: |
-          ciname="${{ matrix.installer_arch.ci_name }}"
-          name="${{ matrix.installer_arch.release_name }}"
-          dest="rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}"
+          name="${{ matrix.platform }}"
+          dest="rayhunter-v${{ env.VERSION }}-${{ matrix.platform }}"
           mkdir "$dest"
           mv installer-$ciname/installer* $dest/installer
           cp -r rayhunter-daemon-* rootshell/rootshell dist/* installer/install.ps1 $dest
@@ -338,8 +331,8 @@ jobs:
       - name: Upload zip release and sha256
         uses: actions/upload-artifact@v4
         with:
-          name: rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}
+          name: rayhunter-v${{ env.VERSION }}-${{ matrix.platform }}
           path: |
-            rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}.zip
-            rayhunter-v${{ env.VERSION }}-${{ matrix.installer_arch.release_name }}.zip.sha256
+            rayhunter-v${{ env.VERSION }}-${{ matrix.platform }}.zip
+            rayhunter-v${{ env.VERSION }}-${{ matrix.platform }}.zip.sha256
           if-no-files-found: error
